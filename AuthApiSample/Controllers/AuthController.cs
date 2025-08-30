@@ -14,10 +14,10 @@ namespace AuthApiSample.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<IdentityUser> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AuthController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
+        public AuthController(UserManager<IdentityUser> userManager, IConfiguration configuration)
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -33,7 +33,7 @@ namespace AuthApiSample.Controllers
                 return Conflict(new { Status = "Error", Message = "User already exists!"});
             }
 
-            ApplicationUser user = new()
+            IdentityUser user = new()
             {
                 UserName = model.Username,
                 Email = model.Email,
