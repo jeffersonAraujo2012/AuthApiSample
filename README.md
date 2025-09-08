@@ -73,3 +73,15 @@ Após a configuração inicial é necessário informar ao Identity que ele dever
 \
 Por fim usamos o método **AddDefaultTokenProviders** para adicionar os provedores padrão de tokens. Estes tokens NÃO tem relação direta com login e logout, na verdade estes tokens são aquelas chaves que podem ser usadas sem necessariamente o usuário estar logado. Um exemplo disso é quando é gerado um link para validar o email do usuário, este link possui uma cadeia de caracteres que passa batido por muitos, saiba que esta cadeia pode ser um token criptografado para validar a ação no servidor. Outro exemplo de token são aqueles códigos de validação para login que recebemos em email ou SMS.
 
+```C#
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+```
