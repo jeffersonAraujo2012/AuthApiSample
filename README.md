@@ -55,7 +55,7 @@ No arquivo appsettings.json adicionei a chave padrão de connection string (**Co
 }
 ```
 
-Em Program.cs, logo após a criação do builder, eu adicionei a classe de contexto com o método builder.Services.AddDbContext<T>. O método possui um tipo genérico que deve ser uma classe que herda de DbContext. Ela recebe como parametros um options que é nada verdade um DbContextOptionsBuilder. Por trás dos panos esse builder será usado para gerar um DbContextOptions que será enviado para o construtor da classe T. No nosso caso a única configuração necessária é a declaração de qual provedor de banco de dados vamos utilizar com a devida string de conexão.
+Em Program.cs, logo após a criação do builder, eu adicionei a classe de contexto com o método builder.Services.AddDbContext<T>. O método possui um tipo genérico que deve ser uma classe que herda de DbContext. Ela recebe como parametros um options que é na verdade um DbContextOptionsBuilder. Por trás dos panos esse builder será usado para gerar um DbContextOptions que será enviado para o construtor da classe T. No nosso caso a única configuração necessária é a declaração de qual provedor de banco de dados vamos utilizar com a devida string de conexão.
 
 ```C#
 var builder = WebApplication.CreateBuilder(args);
@@ -67,7 +67,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 O método **builder.Configuration.GetConnectionString** é um método helper que acessa o appsettings exatamente na chave ConnectionStrings. Ele recebe a chave que você deseja acessar nesta seção, no nosso caso a chave **DefaultConnection**.
 
 ## Step 4 - Configuração do Identity
-Após configurar o banco de dados é feita a configuração do Identity. Parte da configuração do Identity já foi feita no Step 2 ao criar uma classe de contexto que herda de **IdentityDbContext<TUser>**. No **Program.cs** devemos usar o método **AddIdentity<TUser,TRole>**, onde **TUser** é uma classe que deve ser ou herdar de **IdentityUser** e **TRole** deve ser ou herdar de **IdentityRole**, no meu caso eu utilizei as classes base. Este método recebe como parâmetro uma expressão lambda que configura um objeto **IdentityOptions**, este objeto é usado para configurar diversos parâmetros se seguranção do Identity, como regras de senha, usuário, tokens e etc. Por razões de didática eu configurei apenas o modelo de senha.\
+Após configurar o banco de dados é feita a configuração do Identity. Parte da configuração do Identity já foi feita no Step 2 ao criar uma classe de contexto que herda de **IdentityDbContext<TUser>**. No **Program.cs** devemos usar o método **AddIdentity<TUser,TRole>**, onde **TUser** é uma classe que deve ser ou herdar de **IdentityUser**. **TRole** deve ser ou herdar de **IdentityRole**. No meu caso eu utilizei as classes base. Este método recebe como parâmetro uma expressão lambda que configura um objeto **IdentityOptions**, este objeto é usado para configurar diversos parâmetros se seguranção do Identity, como regras de senha, usuário, tokens e etc. Por razões de didática eu configurei apenas o modelo de senha.\
 \
 Após a configuração inicial é necessário informar ao Identity que ele deverá usar para conexão ao banco de dados o Entity Framework Core. Por isso devemos incluir um context/store do EF Core com o método **AddEntityFrameworkStores<TContext>**, onde **TContext** é a classe de conexão e deve herdar de **DbContext**.\
 \
@@ -85,3 +85,11 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 ```
+
+## Step 5 - Configuração da autenticação
+
+Agora foi realizada a configuração da autenticação. Para isso utiliza-se o método **builder.Services.AddAuthentication** que recebe como parametro uma expressão lambda que configura um objeto **AuthenticationOptions**. Nessa expressão lambda são configurados o schema de autenticação e de desafio (challenge). Como schema de autenticação usei o schema fornecido pelo pacote JwtBearer, neste caso o schema **JwtBearerDefaults.AuthenticationScheme**. Além disso, como schema de desafio, usei o exato mesmo schema. Para fins de conhecimento, segue o que é cada um segundo o Gemini:
+- O DefaultAuthenticateScheme define o método padrão que a aplicação usará para autenticar um usuário. Pense nele como o segurança que verifica a identidade de alguém que já apresentou uma credencial.
+- O DefaultChallengeScheme define a ação que a aplicação deve tomar quando um usuário não autenticado (anônimo) tenta acessar um recurso que exige autenticação. Pense nele como o segurança que barra a entrada de alguém sem convite e diz o que essa pessoa precisa fazer para entrar.
+
+
