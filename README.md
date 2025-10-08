@@ -92,4 +92,22 @@ Agora foi realizada a configuração da autenticação. Para isso utiliza-se o m
 - O DefaultAuthenticateScheme define o método padrão que a aplicação usará para autenticar um usuário. Pense nele como o segurança que verifica a identidade de alguém que já apresentou uma credencial.
 - O DefaultChallengeScheme define a ação que a aplicação deve tomar quando um usuário não autenticado (anônimo) tenta acessar um recurso que exige autenticação. Pense nele como o segurança que barra a entrada de alguém sem convite e diz o que essa pessoa precisa fazer para entrar.
 
+```C#
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+```
+
+Agora é necessário configurar como o esquema JwtBearer deve funcionar. É aqui que são definidas as regras para que um token seja considerado válido.
+
+- **options.TokenValidationParameters**: É um objeto que contém todas as regras de validação.
+- **ValidateIssuer**: (true) Confere se o campo "iss" (issuer/emissor) do token corresponde ao que você espera. Garante que o token foi gerado pela sua aplicação.
+- **ValidateAudience**: (true) Confere se o campo "aud" (audience/audiência) do token corresponde ao que você espera. Garante que o token foi gerado para ser usado nesta API específica.
+- **ValidateLifetime**: (true) Confere se o token não expirou.
+- **ValidateIssuerSigningKey: (true) A validação mais importante. Garante que o token foi assinado com a chave secreta que só a sua aplicação conhece, provando que ele não foi modificado.
+- **ValidIssuer** e **ValidAudience**: Os valores esperados para o emissor e a audiência, geralmente lidos do seu arquivo de configuração (appsettings.json).
+- **IssuerSigningKey**: A chave secreta usada para verificar a assinatura do token. É crucial que esta seja exatamente a mesma chave usada para gerar o token.
+
 
