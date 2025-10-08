@@ -108,6 +108,40 @@ Agora é necessário configurar como o esquema JwtBearer deve funcionar. É aqui
 - **ValidateLifetime**: (true) Confere se o token não expirou.
 - **ValidateIssuerSigningKey: (true) A validação mais importante. Garante que o token foi assinado com a chave secreta que só a sua aplicação conhece, provando que ele não foi modificado.
 - **ValidIssuer** e **ValidAudience**: Os valores esperados para o emissor e a audiência, geralmente lidos do seu arquivo de configuração (appsettings.json).
-- **IssuerSigningKey**: A chave secreta usada para verificar a assinatura do token. É crucial que esta seja exatamente a mesma chave usada para gerar o token.
+- **IssuerSigningKey**: A chave secreta usada para verificar a assinatura do token. É crucial que esta seja exatamente a mesma chave usada para gerar o token, pois estamos neste caso usando uma chave simétrica. 
 
+Uma vez definidas as regras de validação do token, deve-se definir agora que o token deve ser obtido diretamente dos cookies e não dos headers. Isto é feito para previnir furto do token por XSS. Para isso alteramos a forma padrão de comportamento do JwtBearer ao receber uma mensagem. Fazemos isso através da prop options.Events. Essa prop recebe um objeto JwtBearerEvents, onde uma das props é justamente o manipulador de mensagem recebida (OnMessageReceived). Nesse manipulador definimos explicitamente que tokens recebidos via header Authorization, devem ser deletados. Em seguida definimos que o token deve vir do cookie access-token.
 
+Segue abaixo o restante do código de autorização:
+
+```C#
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            context.Request.Headers.Remove("Authorization");
+
+            var token = context.Request.Cookies["access-token"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
+});
+```
